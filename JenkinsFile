@@ -1,0 +1,39 @@
+pipeline{
+    agent any
+    tools {
+      maven 'maven3'
+    }
+ 
+     stages{
+        stage('SCM'){
+            steps{
+               git credentialsId: 'github', url: 'https://github.com/cmroopesh/springboot-docker-demo.git'
+            }
+        }
+        
+         stage('Maven Build'){
+            steps{
+                sh "mvn clean package"
+            }
+        }
+        
+        stage('Docker Build'){
+            steps{
+                sh "docker run -d -p 8090:8080 docker3019/springboot:1.0 ."
+                
+            }
+        }
+
+      
+ stage('DockerHub Push'){
+            steps{
+               withCredentials([string(credentialsId: 'docker-pwd', variable: 'dockerHubpwd')]) {
+                    sh "docker login -u docker3019 -p ${dockerHubpwd}"
+                }
+
+                sh "docker push docker3019/springboot:1.0"
+            }
+        }
+     }
+}
+
